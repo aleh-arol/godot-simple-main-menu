@@ -3,5 +3,10 @@
 [ext_resource path="res://assets/fonts/pixel_font.tres" type="DynamicFont" id=1]
 
 [resource]
+Label/colors/font_outline_modulate = Color( 0.101961, 0.0627451, 0.0627451, 1 )
 Label/fonts/font = ExtResource( 1 )
+SimpleMainMenu/colors/font_color_hover = Color( 0.937255, 0.882353, 0.0666667, 1 )
+SimpleMainMenu/colors/font_color_shadow_hover = Color( 0, 0, 0, 1 )
+SimpleMainMenu/constants/shadow_offset_x_hover = 3
+SimpleMainMenu/constants/shadow_offset_y_hover = 3
 VBoxContainer/constants/separation = 20

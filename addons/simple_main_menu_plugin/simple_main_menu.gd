@@ -3,12 +3,14 @@ extends Control
 
 # Vars -------------------------------------------------------------------------
 
+const _class_name = "SimpleMainMenu"
 const _menu_proto_scene = preload("simple_main_menu_proto.tscn")
 
 export var menu_items: Dictionary setget set_menu_items
 var _menu_item_labels: Dictionary
 
 export(int, 1, 3600) var idle_timeout: int = 30 setget set_idle_timeout
+export(AudioStream) var hover_sfx setget set_hover_sfx
 
 var _last_warning := ""
 
@@ -16,14 +18,14 @@ var _last_warning := ""
 
 # Signals ----------------------------------------------------------------------
 
-signal menu_item_clicked(menu_item_id)
+signal menu_item_clicked(menu_item_id, button_id)
 
 # Signals ----------------------------------------------------------------------
 
 #TODO: timer effect (restart time on activity, stop effect on activity)
 
-#TODO: timer ()
-#TODO: theme/theme changed
+#TODO: custom theme hoover (effect?, sound)
+#TODO: experiment with bb effect
 
 func _init():
     print("_init called for: %s" % self)
@@ -40,6 +42,7 @@ func _ready():
     # deferred exported props application
     set_menu_items(menu_items)
     set_idle_timeout(idle_timeout)
+    set_hover_sfx(hover_sfx)
 
     _post_init_proto_scene()
     show()
@@ -84,6 +87,8 @@ func _add_menu_item(item_id: int, item_text: String):
         add_user_signal(user_signal_name)
 
     item_label.connect("gui_input", self, "_on_menu_item_input", [item_id, user_signal_name])
+    item_label.connect("mouse_entered", self, "_on_menu_item_mouse_entered", [item_id, item_label])
+    item_label.connect("mouse_exited", self, "_on_menu_item_mouse_exited", [item_id, item_label])
 
     _menu_item_labels[item_id] = item_label
     $Root/VBoxContainer.add_child(item_label)
@@ -158,13 +163,39 @@ func show():
     $Root/VBoxContainer.show()
     $Root/IdleTimer.start()
 
-func _on_menu_item_input(event, item_id, user_signal_name):
-    if event is InputEventMouseButton and event.button_index == BUTTON_LEFT and event.pressed:
-        emit_signal(user_signal_name)
-        emit_signal("menu_item_clicked", item_id)
+func set_hover_sfx(sfx):
+    hover_sfx = sfx
+    if _proto_scene_constructed():
+        ($Root/AudioStreamPlayer as AudioStreamPlayer).stream = sfx
 
-    elif event is InputEventMouse:
+func _on_menu_item_input(event, item_id, user_signal_name):
+    if event is InputEventMouseButton and event.pressed:
+        emit_signal(user_signal_name)
+        emit_signal("menu_item_clicked", item_id, event.button_index)
+
+    if event is InputEventMouse:
         restart_idle_timer()
+
+func _on_menu_item_mouse_entered(item_id, item_label):
+    var hover_color = get_color("font_color_hover", _class_name)
+    var hover_shadow_color = get_color("font_color_shadow_hover", _class_name)
+    var hover_shadow_offset_x = get_constant("shadow_offset_x_hover", _class_name)
+    var hover_shadow_offset_y = get_constant("shadow_offset_y_hover", _class_name)
+
+    item_label.add_color_override("font_color", hover_color)
+    item_label.add_color_override("font_color_shadow", hover_shadow_color)
+    item_label.add_constant_override("shadow_offset_x", hover_shadow_offset_x)
+    item_label.add_constant_override("shadow_offset_y", hover_shadow_offset_y)
+
+    var audio = ($Root/AudioStreamPlayer as AudioStreamPlayer)
+    if audio.stream:
+        audio.play()
+
+func _on_menu_item_mouse_exited(item_id, item_label):
+    item_label.remove_color_override("font_color")
+    item_label.remove_color_override("font_color_shadow")
+    item_label.remove_constant_override("shadow_offset_x")
+    item_label.remove_constant_override("shadow_offset_y")
 
 func _on_script_changed():
     # cleanup dynamically created labels as
