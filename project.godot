@@ -8,6 +8,22 @@
 
 config_version=4
 
+_global_script_classes=[ {
+"base": "Resource",
+"class": "CannedRichTextEffect",
+"language": "GDScript",
+"path": "res://addons/simple_main_menu_plugin/canned_bb_effect.gd"
+}, {
+"base": "RichTextEffect",
+"class": "SpringRichTextEffect",
+"language": "GDScript",
+"path": "res://bbcode_fx/spring.gd"
+} ]
+_global_script_class_icons={
+"CannedRichTextEffect": "",
+"SpringRichTextEffect": ""
+}
+
 [application]
 
 config/name="simple_main_menu_plugin"
@@ -19,7 +35,7 @@ window/stretch/mode="2d"
 
 [editor_plugins]
 
-enabled=PoolStringArray( "res://addons/simple_main_menu_plugin/plugin.cfg" )
+enabled=PoolStringArray(  )
 
 [gui]
 

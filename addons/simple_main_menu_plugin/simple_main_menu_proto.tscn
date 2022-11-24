@@ -6,6 +6,7 @@ anchor_bottom = 1.0
 
 [node name="IdleTimer" type="Timer" parent="."]
 wait_time = 10.0
+one_shot = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 anchor_right = 1.0
