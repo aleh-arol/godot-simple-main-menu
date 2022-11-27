@@ -1,0 +1,17 @@
+[gd_resource type="Resource" load_steps=4 format=2]
+
+[ext_resource path="res://bbcode_fx/spring.gd" type="Script" id=1]
+[ext_resource path="res://addons/simple_main_menu_plugin/canned_bb_effect.gd" type="Script" id=2]
+
+[sub_resource type="RichTextEffect" id=3]
+script = ExtResource( 1 )
+
+[resource]
+script = ExtResource( 2 )
+effect_config = {
+"a0_max": 250.0,
+"a0_min": 0.0,
+"phase_off": 1.57
+}
+custom_effect = SubResource( 3 )
+effect = "spring"

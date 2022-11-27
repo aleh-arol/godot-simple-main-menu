@@ -10,11 +10,6 @@ extends Control
 # * Tool Scripts reload and variable erasing (fixed in 4.0?)
 # Godot Next Versions ToDo -----------------------------------------------------
 
-# TODO: node warning to be a dict
-
-# TODO: text shift?
-# TODO: test with other effects
-# TODO: params to resource
 # TODO: unit tests
 
 # Vars -------------------------------------------------------------------------
@@ -86,8 +81,12 @@ func _ready():
 func _post_init_proto_scene():
     assert(is_inside_tree())
 
-    idle_timer.connect("timeout", self, "_on_idle_timeout")
-    $Root.connect("gui_input", self, "_on_menu_control_input")
+    if not idle_timer.is_connected("timeout", self, "_on_idle_timeout"):
+        idle_timer.connect("timeout", self, "_on_idle_timeout")
+
+    if not $Root.is_connected("gui_input", self, "_on_menu_control_input"):
+        $Root.connect("gui_input", self, "_on_menu_control_input")
+
     mouse_filter = Control.MOUSE_FILTER_PASS
 
 # Proto scene ------------------------------------------------------------------
@@ -99,9 +98,11 @@ func _get_configuration_warning() -> String:
 
 func _reset_node_warning():
     _last_warning = ""
+    update_configuration_warning()
 
 func _set_node_warning(msg):
     _last_warning = msg
+    update_configuration_warning()
 
 func _notify_editor_error(error_msg):
     push_error(error_msg)
@@ -116,7 +117,7 @@ func _add_menu_item(item_id: int, item_text: String):
     item_label.mouse_filter = Control.MOUSE_FILTER_STOP
     item_label.bbcode_enabled = true
 
-    item_label.bbcode_text = "[center]%s[/center]" % item_text
+    item_label.bbcode_text = _apply_default_bb_tags(item_text)
 
     # TODO: property to be deprecated in the next versions
     # to be replaced with alignment properties
@@ -183,6 +184,9 @@ func set_menu_items(menu_items_new: Dictionary):
 
 # Idle effect ------------------------------------------------------------------
 
+func _apply_default_bb_tags(input) -> String:
+    return "[center]%s[/center]" % input
+
 func set_idle_timeout(new_idle_timeout: int):
     idle_timeout = new_idle_timeout
 
@@ -226,23 +230,25 @@ func _reinstall_idle_vfx(new_item_id: int, old_item_id: int):
     var old_idle_item_control = _menu_item_labels[old_item_id]
     var new_idle_item_control = _menu_item_labels[new_item_id]
 
-    old_idle_item_control.custom_effects.clear()
-    new_idle_item_control.install_effect((idle_vfx as CannedRichTextEffect).effect)
+    old_idle_item_control.set_effects([])
+    if idle_vfx:
+        assert(new_idle_item_control.custom_effects.empty())
+        new_idle_item_control.install_effect((idle_vfx as CannedRichTextEffect).custom_effect)
 
 func reset_idle_vfx(stop: bool = false):
     # stop idle effect
     var idle_item_control := (_menu_item_labels[idle_item_id] as RichTextLabel)
     var idle_item_text := String(menu_items[idle_item_id])
-    idle_item_control.bbcode_text = ("[center]%s[/center]" % idle_item_text)
+    idle_item_control.bbcode_text = _apply_default_bb_tags(idle_item_text)
 
     if not stop:
         idle_timer.start()
 
 func start_idle_vfx():
     var idle_item_control := (_menu_item_labels[idle_item_id] as RichTextLabel)
-    var idle_item_bb_text := idle_item_control.bbcode_text
+    var idle_item_text := String(menu_items[idle_item_id])
 
-    idle_item_control.bbcode_text = idle_vfx.apply_effect(idle_item_bb_text)
+    idle_item_control.bbcode_text = _apply_default_bb_tags(idle_vfx.apply_effect(idle_item_text))
 
 func _on_idle_timeout():
     if idle_vfx:
